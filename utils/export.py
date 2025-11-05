@@ -24,7 +24,6 @@ def export_to_excel(data: List[Dict[str, Any]], filename: str = None) -> bool:
         df_data = []
         for item in data:
             total = item['dsp'] + item['iot'] + item['android'] + item['compiler'] + item['minor']
-            percentage = (total / 500) * 100
             
             df_data.append({
                 "Roll No.": item['rollno'],
@@ -35,8 +34,7 @@ def export_to_excel(data: List[Dict[str, Any]], filename: str = None) -> bool:
                 "Android": item['android'],
                 "Compiler": item['compiler'],
                 "Minor": item['minor'],
-                "Total": total,
-                "Percentage": f"{percentage:.2f}%"
+                "Total (out of 350)": total
             })
         
         df = pd.DataFrame(df_data)
@@ -109,11 +107,10 @@ def export_to_pdf(data: List[Dict[str, Any]], filename: str = None) -> bool:
         
         # Prepare table data
         table_data = [["Roll No.", "Name", "Father's Name", "DSP", "IOT", 
-                      "Android", "Compiler", "Minor", "Total", "%"]]
+                      "Android", "Compiler", "Minor", "Total (out of 350)"]]
         
         for item in data:
             total = item['dsp'] + item['iot'] + item['android'] + item['compiler'] + item['minor']
-            percentage = (total / 500) * 100
             
             table_data.append([
                 str(item['rollno']),
@@ -124,8 +121,7 @@ def export_to_pdf(data: List[Dict[str, Any]], filename: str = None) -> bool:
                 str(item['android']),
                 str(item['compiler']),
                 str(item['minor']),
-                f"{total:.1f}",
-                f"{percentage:.1f}"
+                str(total)
             ])
         
         # Create table

@@ -193,8 +193,7 @@ async function loadFullDetails() {
                                 <th>Android</th>
                                 <th>Compiler</th>
                                 <th>Minor</th>
-                                <th>Total</th>
-                                <th>%</th>
+                                <th>Total (out of 350)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -202,7 +201,6 @@ async function loadFullDetails() {
             
             result.data.forEach(student => {
                 const total = student.dsp + student.iot + student.android + student.compiler + student.minor;
-                const percentage = ((total / 500) * 100).toFixed(2);
                 
                 tableHTML += `
                     <tr>
@@ -214,8 +212,7 @@ async function loadFullDetails() {
                         <td>${student.android}</td>
                         <td>${student.compiler}</td>
                         <td>${student.minor}</td>
-                        <td><strong>${total.toFixed(1)}</strong></td>
-                        <td><strong>${percentage}%</strong></td>
+                        <td><strong>${total}</strong></td>
                     </tr>
                 `;
             });
@@ -247,16 +244,16 @@ function showSearchStudent() {
         <form id="searchForm" onsubmit="searchStudent(event)">
             <div class="form-row">
                 <div class="form-group">
+                    <label>Search By</label>
+                    <select id="searchType" name="searchType" onchange="updateSearchField()">
+                        <option value="rollno">Roll Number</option>
+                        <option value="name">Name</option>
+                        <option value="father">Father's Name</option>
+                    </select>
+                </div>
+                <div class="form-group" id="searchInputGroup">
                     <label>Roll Number *</label>
-                    <input type="number" name="rollno" required>
-                </div>
-                <div class="form-group">
-                    <label>Name *</label>
-                    <input type="text" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label>Password *</label>
-                    <input type="password" name="password" required>
+                    <input type="number" id="searchInput" name="searchValue" required>
                 </div>
             </div>
             
@@ -269,84 +266,120 @@ function showSearchStudent() {
     `;
 }
 
+function updateSearchField() {
+    const searchType = document.getElementById('searchType').value;
+    const searchInputGroup = document.getElementById('searchInputGroup');
+    
+    let label = 'Roll Number *';
+    let inputType = 'number';
+    
+    if (searchType === 'name') {
+        label = 'Name *';
+        inputType = 'text';
+    } else if (searchType === 'father') {
+        label = "Father's Name *";
+        inputType = 'text';
+    }
+    
+    searchInputGroup.innerHTML = `
+        <label>${label}</label>
+        <input type="${inputType}" id="searchInput" name="searchValue" required>
+    `;
+}
+
 async function searchStudent(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData);
+    const searchType = formData.get('searchType');
+    const searchValue = formData.get('searchValue');
     
     try {
-        // Verify credentials first
-        const verifyResponse = await fetch(`${API_BASE}/students/verify`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        });
-        
-        if (!verifyResponse.ok) {
-            showToast('Invalid credentials', 'error');
-            return;
-        }
-        
-        // Get student details
-        const response = await fetch(`${API_BASE}/students/${data.rollno}`);
+        // Get all students
+        const response = await fetch(`${API_BASE}/full-details`);
         const result = await response.json();
         
         if (result.success) {
-            const student = result.student;
-            const marks = result.marks;
-            const total = marks.dsp + marks.iot + marks.android + marks.compiler + marks.minor;
-            const percentage = ((total / 500) * 100).toFixed(2);
+            let foundStudents = [];
             
-            document.getElementById('searchResults').innerHTML = `
-                <div class="student-detail">
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Student Details</h3>
-                    <div class="detail-row">
-                        <div class="detail-label">Roll Number:</div>
-                        <div class="detail-value">${student.rollno}</div>
+            // Filter based on search type
+            if (searchType === 'rollno') {
+                foundStudents = result.data.filter(s => s.rollno == searchValue);
+            } else if (searchType === 'name') {
+                foundStudents = result.data.filter(s => 
+                    s.name.toLowerCase().includes(searchValue.toLowerCase())
+                );
+            } else if (searchType === 'father') {
+                foundStudents = result.data.filter(s => 
+                    s.father.toLowerCase().includes(searchValue.toLowerCase())
+                );
+            }
+            
+            if (foundStudents.length > 0) {
+                let resultsHTML = '<div class="search-results-container">';
+                
+                foundStudents.forEach(student => {
+                    const total = student.dsp + student.iot + student.android + student.compiler + student.minor;
+                    
+                    resultsHTML += `
+                        <div class="student-detail">
+                            <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Student Details</h3>
+                            <div class="detail-row">
+                                <div class="detail-label">Roll Number:</div>
+                                <div class="detail-value">${student.rollno}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Name:</div>
+                                <div class="detail-value">${student.name}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Father's Name:</div>
+                                <div class="detail-value">${student.father}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">DSP:</div>
+                                <div class="detail-value">${student.dsp}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">IOT:</div>
+                                <div class="detail-value">${student.iot}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Android:</div>
+                                <div class="detail-value">${student.android}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Compiler:</div>
+                                <div class="detail-value">${student.compiler}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Minor:</div>
+                                <div class="detail-value">${student.minor}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label"><strong>Total (out of 350):</strong></div>
+                                <div class="detail-value"><strong>${total}</strong></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                resultsHTML += '</div>';
+                document.getElementById('searchResults').innerHTML = resultsHTML;
+                showToast(`Found ${foundStudents.length} student(s)`, 'success');
+            } else {
+                document.getElementById('searchResults').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>No Results Found</h3>
+                        <p>No students match your search criteria</p>
                     </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Name:</div>
-                        <div class="detail-value">${student.name}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Father's Name:</div>
-                        <div class="detail-value">${student.father}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">DSP:</div>
-                        <div class="detail-value">${marks.dsp}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">IOT:</div>
-                        <div class="detail-value">${marks.iot}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Android:</div>
-                        <div class="detail-value">${marks.android}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Compiler:</div>
-                        <div class="detail-value">${marks.compiler}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Minor:</div>
-                        <div class="detail-value">${marks.minor}</div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label"><strong>Total:</strong></div>
-                        <div class="detail-value"><strong>${total.toFixed(1)} / 500</strong></div>
-                    </div>
-                    <div class="detail-row">
-                        <div class="detail-label"><strong>Percentage:</strong></div>
-                        <div class="detail-value"><strong>${percentage}%</strong></div>
-                    </div>
-                </div>
-            `;
-        } else {
-            showToast('Student not found', 'error');
+                `;
+                showToast('No students found', 'error');
+            }
         }
     } catch (error) {
         showToast('Error searching student', 'error');
+        console.error(error);
     }
 }
 
