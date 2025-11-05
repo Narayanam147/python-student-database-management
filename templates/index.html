@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Database Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>Student DBMS</h1>
+                </div>
+                <div class="connection-status" id="connectionStatus">
+                    <i class="fas fa-circle"></i>
+                    <span>Checking...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Dashboard Cards -->
+            <div class="dashboard-cards">
+                <div class="card action-card" onclick="showSection('add')">
+                    <i class="fas fa-user-plus"></i>
+                    <h3>Add Student</h3>
+                    <p>Register new student</p>
+                </div>
+                <div class="card action-card" onclick="showSection('view')">
+                    <i class="fas fa-list"></i>
+                    <h3>View Records</h3>
+                    <p>Display all students</p>
+                </div>
+                <div class="card action-card" onclick="showSection('search')">
+                    <i class="fas fa-search"></i>
+                    <h3>Search Student</h3>
+                    <p>Find specific record</p>
+                </div>
+                <div class="card action-card" onclick="showSection('update')">
+                    <i class="fas fa-edit"></i>
+                    <h3>Update Record</h3>
+                    <p>Modify student data</p>
+                </div>
+                <div class="card action-card" onclick="showSection('delete')">
+                    <i class="fas fa-trash"></i>
+                    <h3>Delete Student</h3>
+                    <p>Remove record</p>
+                </div>
+                <div class="card action-card" onclick="showSection('export')">
+                    <i class="fas fa-download"></i>
+                    <h3>Export Data</h3>
+                    <p>Generate reports</p>
+                </div>
+            </div>
+
+            <!-- Sections -->
+            <div id="contentArea" class="content-area"></div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
